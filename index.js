@@ -6,7 +6,7 @@ require('dotenv').config();
 
 const server = new ScriptServer({
     core: {
-        jar: path.resolve('bin/current'),
+        jar: path.resolve(process.env.JAR_PATH),
         args: ['-Xmx8G'],
         rcon: {
             port: process.env.RCON_PORT,
