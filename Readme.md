@@ -88,6 +88,10 @@ Assuming a `BACKUP_SCHEDULE` of `0 * * * *`, this represents the backup behavior
 
 > Setting a backup schedule that is too frequent may cause one backup to start before the other is finished! Make sure your world size and hardware are suitable for the schedule.
 
+The server notifies players via `/tellraw` that the backup is starting, and outputs some the backup's size and the time it took to capture it.
+
+In order to safely capture the backup, the wrapper issues a `/save-off` command, then a `/save-all` to flush pending edits to disk, while preventing further writes. The "locked" world is then streamed to a zip archive in the `BACKUPS_DIR` folder, with the current timestamp. A `/save-on` command is run at the end of the backup to resume edits.
+
 ### Clock
 
 Speaks up every (real) half-hour. Good to keep you from squandering the _entire_ day, maybe? 🙃
