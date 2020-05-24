@@ -42,7 +42,7 @@ This should point to the `data` directory you created, above, whatever that was 
 
 #### `BACKUPS_DIR`
 
-Created when the first backup is created, and culled when the `BACKUPS_KEEP` threshold is reached.
+Created along with the first backup, and truncated when the `BACKUPS_KEEP` threshold is reached.
 
 #### `BACKUPS_KEEP`
 
