@@ -46,13 +46,15 @@ Created when the first backup is created, and culled when the `BACKUPS_KEEP` thr
 
 #### `BACKUPS_KEEP`
 
-Maximum number of backups to keep around. Keep in mind that _your oldest backup only be as old as this number of iterations of the `BACKUPS_SCHEDULE`—so, if you want a week of hourly updates, this value will have to be pretty large.
+Maximum number of backups to keep around. Keep in mind that _your oldest backup will only be as old as this number of iterations of the `BACKUPS_SCHEDULE`_—so, if you want, say, a week of hourly updates, this value will have to be pretty large.
+
+Backups are only captured when there are active players. When the last player disconnects, a backup is captured, then the schedule is paused until another player joins.
 
 > Eventually, I'd like to have an "eased" schedule of sorts, or rotate hourly, daily, weekly, and monthly snapshots, a la `automysqlbackup`.
 
 #### `BACKUPS_SCHEDULE`
 
-A [CRON-compatible](https://crontab.guru/) interval that determines when backups are captured.
+A [CRON-compatible](https://crontab.guru/) interval that determines when backups are captured, while players are active.
 
 > Paths for the above options are eventually passed to `path.resolve(…)`!
 
@@ -62,11 +64,33 @@ _ScriptServer_ is extensible via what it calls "modules." We bootstrap a couple 
 
 ### Backups
 
-The see the config options, above, for capabilities.
+The see the config options, above, for capabilities. Backups are only captured while players are active. The schedule determines the interval at which a backup is made—but the server will make one additional backup when it detects the last player has disconnected.
+
+Assuming a `BACKUP_SCHEDULE` of `0 * * * *`, this represents the backup behavior:
+
+```
+|     (Idle Time)
+|
++---  Player A joins at 2:15PM, starting the `BACKUP_SCHEDULE`
+|
++---  A backup is captured at 3:00PM
+|
++---  Player B joins at 3:30PM, but has no affect on the already-active schedule.
+|
++---  A backup is captured at 4:00PM
+|
++---  Player B disconnects at 4:15PM
+|
++---  Player A disconnects at 4:20PM, triggering a backup.
+|
+|     (Idle Time)
+```
+
+> Setting a backup schedule that is too frequent may cause one backup to start before the other is finished! Make sure your world size and hardware are suitable for the schedule.
 
 ### Clock
 
-Speaks up ever half-hour. Good to keep you from squandering the _entire_ day, maybe? 🙃
+Speaks up every (real) half-hour. Good to keep you from squandering the _entire_ day, maybe? 🙃
 
 ### Ping
 

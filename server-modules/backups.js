@@ -94,35 +94,52 @@ const cullBackups = function (server) {
 
     // Bail if we're within the backup limit, and don't need to cull anything:
     if (backups.length <= maxBackups) {
-        log('No backups to cull.', LOGGING_CATEGORY);
-        yell(server, `Only ${backups.length} of ${maxBackups} are used. No backups will be culled.`);
+        log(`Only ${backups.length} of ${maxBackups} are used. No backups will be culled.`, LOGGING_CATEGORY);
 
         return;
     }
 
-    log('Some stale backups require culling.', LOGGING_CATEGORY);
-
     // Sort backups by date created (ascending, oldest first):
     const toCull = take(sortBy(backups, ['ctime']), backups.length - maxBackups);
 
-    yell(server, `Culling ${toCull.length} backup(s).`);
+    log(`Culling ${toCull.length} backup(s).`, LOGGING_CATEGORY);
 
     toCull.forEach(function (b) {
         fs.unlinkSync(b.path);
 
-        yell(server, `Deleted ${b.name}.`);
+        log(`Deleted ${b.name}.`, LOGGING_CATEGORY);
     });
 };
 
 module.exports = function () {
     const server = this;
 
-    server.on('start', () => {
-        log('Scheduling...', LOGGING_CATEGORY);
+    const task = cron.schedule(process.env.BACKUPS_SCHEDULE, function () {
+        log('Starting scheduled backup.', LOGGING_CATEGORY);
+        makeBackup(server);
+    }, { scheduled: false });
 
-        cron.schedule(process.env.BACKUPS_SCHEDULE, function () {
-            log('Starting scheduled backup.', LOGGING_CATEGORY);
-            makeBackup(server);
-        });
+    server.on('login', (e) => {
+        log('Activated by player login.', LOGGING_CATEGORY);
+
+        task.start();
+    });
+
+    server.on('logout', async (e) => {
+        // This may blow up due to the regex implementation, when no players are online:
+        const online = await server.util.getOnline().catch((err) => {});
+
+        // Unclear what happens now...
+        if (online && online.players && online.players.length) {
+            log('Other players remain online, so backups will continue to run.', LOGGING_CATEGORY);
+
+            return;
+        }
+
+        log('Capturing one more backup, then pausing until someone logs in.', LOGGING_CATEGORY);
+
+        task.stop();
+
+        makeBackup(server);
     });
 };
