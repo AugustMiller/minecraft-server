@@ -1,6 +1,6 @@
 # Minecraft Server
 
-This repo contains (some) configuration and functionality added to an instance of the [ScriptServer](/garrettjoecox/scriptserver) library.
+This repo contains (some) configuration and functionality added to an instance of the [ScriptServer](https://github.com/garrettjoecox/scriptserver) library.
 
 I'd been using Wrapper.py for a few years, and decided I wanted something a little "smaller" and more hackable—and in a language I was reasonably familiar with.
 
